@@ -3,13 +3,14 @@ import cors from "cors"
 import morgan from "morgan";
 import dotenv from "dotenv"
 import { ResponseMessage } from "./utils/responseMessage.js";
+import { server, app, io } from "./socket/sockect.js";
+import connectDB from "./config/db.js";
+import messageRoutes from "./routes/messageRoutes.js"
 
 
 
 
 dotenv.config()
-
-const app = express();
 
 //custom middlewares
 app.use(express.json()); // Parse incoming JSON requests
@@ -26,6 +27,10 @@ app.get("/", (req, res) => {
 });
 
 
+//Other Routes
+app.use("/api/v1/messages", messageRoutes);
+
+
 // Default error handling
 app.use((err, req, res, next) => {
     console.error(err.stack); // Log error stack in development
@@ -36,6 +41,8 @@ app.use((err, req, res, next) => {
     });
   });
   
+
+
   // NOT FOUND ROUTE
   app.use("*", (req, res) => {
     res.status(400).json({
@@ -46,11 +53,18 @@ app.use((err, req, res, next) => {
   });
 
 
-  const PORT = process.env.PORT || 4001;
+ const PORT = process.env.PORT || 4001;
 
 
-export const start = () => {
- app.listen(PORT,()=>{
-  console.log(`Sever Started at ${PORT}`)
+export const start = async() => {
+try{
+await connectDB();
+server.listen(PORT,()=>{
+  console.log(`WebSocket server running on port ${PORT}`)
  })
+}
+catch(error){
+ console.error("Failed to connect to MongoDB", error);
+ process.exit(1); // Exit process with failure
+}
 }
