@@ -14,7 +14,7 @@ const server = http.createServer(app);
 //create socket server
 const io =  new Server(server, {
     cors:{
-        origin:["http://localhost:5175",["https://bclics-app.vercel.app"],"https://www.bclics.com"],
+        origin:["http://localhost:5175",["https://bclicscom.vercel.app"],"https://www.bclics.com"],
         methods:["GET","POST"]
     }
 });
