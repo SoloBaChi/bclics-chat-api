@@ -15,7 +15,10 @@ dotenv.config()
 //custom middlewares
 app.use(express.json()); // Parse incoming JSON requests
 app.use(morgan("dev"));
-app.use(cors({ origin: ["https://www.bclics.com",["https://bclicscom.vercel.app"],"http://localhost:5175"], credentials: true }));
+// app.use(cors({ origin: ["https://www.bclics.com",["https://bclicscom.vercel.app"],"http://localhost:5175"], 
+// methods: ["GET", "POST"],
+// credentials: true 
+// }));
 app.disable("x-powered-by"); // Hide server stack details
 
 

@@ -19,9 +19,7 @@ export const sendMessage = async(req,res)  => {
         io.to(recipientSocketId).emit("newMessage", message)
        }
 
-       return res.status(200).json(new ResponseMessage("success",200,"Message Created",{
-        message
-       }))
+       return res.status(200).json(new ResponseMessage("success",200,"Message broadcasted via socket"))
 
     }
     catch(error){
