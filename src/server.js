@@ -23,6 +23,7 @@ app.disable("x-powered-by"); // Hide server stack details
 
 //Defualt Route
 app.get("/", (req, res) => {
+ console.log(req.user)
   return res.status(200).json(new ResponseMessage("success",200,`Welcome to ${process.env.APP_NAME}`));
 });
 
