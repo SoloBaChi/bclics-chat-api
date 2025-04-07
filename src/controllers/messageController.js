@@ -7,6 +7,13 @@ import { ResponseMessage } from "../utils/responseMessage.js"
 
 export const sendMessage = async(req,res)  => {
     try{
+
+      const token = req.headers.authorization?.split(" ")[1];
+      console.log(token)
+      if (token !== process.env.SOCKET_API_KEY) {
+        return res.status(403).json(new ResponseMessage("error", 403, "Unauthorized"));
+      }
+
         const { recipientId, message} = req.body;
 
         if(!message){
