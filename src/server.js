@@ -6,6 +6,8 @@ import { ResponseMessage } from "./utils/responseMessage.js";
 import { server, app, io } from "./socket/sockect.js";
 import connectDB from "./config/db.js";
 import messageRoutes from "./routes/messageRoutes.js"
+import postRoutes from "./routes/postRoutes.js"
+import userRoutes from "./routes/userRoutes.js"
 
 
 
@@ -33,6 +35,8 @@ app.get("/", (req, res) => {
 
 //Other Routes
 app.use("/api/v1/messages", messageRoutes);
+app.use("/api/v1/posts", postRoutes);
+app.use("/api/v1/users", userRoutes);
 
 
 // Default error handling

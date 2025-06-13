@@ -3,6 +3,8 @@ import http from "http";
 import { Server } from "socket.io";
 import Message from "../models/MessageModel.js";
 import Conversation from "../models/conversationModel.js";
+import Notification from "../models/notificationModel.js";
+import User from "../models/userModel.js";
 
 // Create express app
 const app = express();
@@ -34,9 +36,16 @@ io.on("connection", (socket) => {
 
   if (userId && userId !== "undefined") {
     userSocketMap[userId] = socket.id;
+    
     // Broadcast updated online users list
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
+
+   // ✅ Emit all notifications for connected user
+    emitUserNotifications(userId);
+
   }
+
+
 
   // Mark messages as seen
   socket.on("markMessagesAsSeen", async ({ conversationId, userId }) => {
@@ -60,6 +69,18 @@ io.on("connection", (socket) => {
     }
   });
 
+
+    // ✅ Mark notification as read
+  // ======================
+  socket.on("markNotificationAsRead", async ({ notificationId }) => {
+    try {
+      await Notification.findByIdAndUpdate(notificationId, { isRead: true });
+      if (userId) emitUserNotifications(userId); // Emit updated list
+    } catch (err) {
+      console.error("❌ Error marking notification as read:", err);
+    }
+  });
+
   // Handle disconnection
   socket.on("disconnect", () => {
     console.log("❌ User disconnected:", socket.id);
@@ -71,6 +92,41 @@ io.on("connection", (socket) => {
     // Broadcast updated online users list
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
   });
+
+
+
+
+
+    // ✅ Listen for deleteNotification
+    socket.on("deleteNotification", async ({ notificationId }) => {
+      try {
+        await Notification.findByIdAndDelete(notificationId);
+        if (userId) emitUserNotifications(userId);
+      } catch (err) {
+        console.error("❌ Error deleting notification:", err);
+      }
+    });
+
+  // Helper: Emit all notifications to the user
+  async function emitUserNotifications(userId) {
+    try {
+      const notifications = await Notification.find({ recipientId:userId })
+      .populate("senderId", "userName name profileImage")
+      .sort({ createdAt: -1 })
+      
+      const unreadCount = notifications.filter(n => !n.isRead).length;
+      const socketId = userSocketMap[userId];
+      if (socketId) {
+        io.to(socketId).emit("allNotifications", {
+          notifications,
+          unreadCount
+        });
+      }
+    } catch (err) {
+      console.error("❌ Error fetching notifications:", err);
+    }
+  }
+  
 });
 
 // Export for usage elsewhere

@@ -1,12 +1,10 @@
-import Conversation from "../models/conversationModel.js";
-import Message from "../models/MessageModel.js";
-import Notification from "../models/notificationModel.js";
+
 import { getRecipientSocketId, io } from "../socket/sockect.js";
 import { ResponseMessage } from "../utils/responseMessage.js"
 
 
 
-export const sendMessage = async(req,res)  => {
+export const toggleFollow = async(req,res)  => {
     try{
 
       const token = req.headers.authorization?.split(" ")[1];
@@ -15,29 +13,24 @@ export const sendMessage = async(req,res)  => {
         return res.status(403).json(new ResponseMessage("error", 403, "Unauthorized"));
       }
 
-        const { recipientId, userName, message, createdAt, sender } = req.body;
+        const { recipientId, message, type , createdAt, senderId } = req.body;
 
         if(!message){
           return res.status(404).json(new ResponseMessage("error",404,"message is required"))
         }
 
-       
-      const [ senderId] = await Notification.find({ recipientId:sender })
-      .populate("senderId", "userName name profileImage");
-
        //get the recipients messages from the socket.io
        const recipientSocketId =  getRecipientSocketId(recipientId);
        if(recipientSocketId){
-        io.to(recipientSocketId).emit("newMessage", message);
         io.to(recipientSocketId).emit("newNotification", {
-          senderId:senderId?.senderId || sender,
-          type: "message",
-          message: `You have a message from ${userName}`,
-          createdAt,
+          senderId,
+          type,
+          message,
+          createdAt
          });
        }
 
-       return res.status(200).json(new ResponseMessage("success",200,"Message broadcasted via socket"))
+      return res.status(200).json(new ResponseMessage("success",200,"Message broadcasted via socket"))
 
     }
     catch(error){
